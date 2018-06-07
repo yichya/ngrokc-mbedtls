@@ -38,7 +38,7 @@ int SendReqTunnel(int sock,ssl_context *ssl,char *ReqId,const char *protocol,con
 
 
 
-int loadargs( int argc, char **argv ,list<TunnelInfo*>*tunnellist,char *s_name,int * s_port,char * authtoken,char *password_c,string *ClientId)
+int loadargs( int argc, char **argv ,char *s_name,int * s_port,char * authtoken,char *password_c,string *ClientId)
 {
 	if ( argc > 1 )
 	{
@@ -124,19 +124,21 @@ int loadargs( int argc, char **argv ,list<TunnelInfo*>*tunnellist,char *s_name,i
                         {
                             tunnelinfo->remoteport = atoi( temp );
                         }
+
                         getvalue(jsonstr,"Sdname",tunnelinfo->subdomain);
+                        getvalue(jsonstr,"Hostheader",tunnelinfo->hostheader);
                         getvalue(jsonstr,"Hostname",tunnelinfo->hostname);
 						pos = pos + xpos + 1;
 					}
 
-					(*tunnellist).push_back(tunnelinfo);
+					G_TunnelList.push_back(tunnelinfo);
 				}
 			}
 		}
 	}else  {
 		echo( "use " );
         echo("%s",argv[0]);
-		echo( " -SER[Shost:ngrokd.ngrok.com,Sport:443,Atoken:xxxxxxx,Password:xxx] -AddTun[Type:tcp,Lhost:127.0.0.1,Lport:80,Rport:50199]" );
+		echo( " -SER[Shost:ngrokd.ngrok.com,Sport:443,Atoken:xxxxxxx,Password:xxx] -AddTun[Type:tcp,Lhost:127.0.0.1,Lport:80,Rport:50199,Hostheader:localhost]" );
 		echo( "\r\n" );
 		exit( 1 );
 	}

@@ -64,6 +64,13 @@ dname.rmempty = false
 dname:depends("type", "http")
 dname:depends("type", "https")
 
+hostheader=tunnels:option(Value, "hostheader", "hostheader", translate(""))
+hostheader.datatype = nil
+hostheader.rmempty = true
+hostheader:depends("type", "http")
+hostheader:depends("type", "https")
+
+
 rport=tunnels:option(Value, "rport", translate("Remote Port"))
 rport.datatype = "port"
 rport.rmempty = false

@@ -28,10 +28,12 @@ list_tunnels() {
 	config_get custom_domain "$1" 'custom_domain'
 	config_get rport "$1" 'rport'
 	config_get dname "$1" 'dname'
+	config_get hostheader "$1" 'hostheader'
 	[ -z "$lhost" ] && lhost="127.0.0.1"
   if [ "$enabled" = 1 ]; then
     eval TUNNEL_PARAMS=\$${server}_TUNNEL_PARAMS
 	TUNNEL_PARAMS=$TUNNEL_PARAMS" -AddTun[Type:${type},Lhost:${lhost},Lport:${lport}"
+	[ -n "$hostheader" ] && TUNNEL_PARAMS=${TUNNEL_PARAMS}",Hostheader:${hostheader}"
     [ "z"$custom_domain = "z1" ] && DTYPE="Hostname" || DTYPE="Sdname"
     [ ${type} = "tcp" ] && \
 	TUNNEL_PARAMS=${TUNNEL_PARAMS}",Rport:${rport}]" || \

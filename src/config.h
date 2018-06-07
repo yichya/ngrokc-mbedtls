@@ -6,7 +6,7 @@
 #endif
 
 #ifndef OPENSSLDL
-#define OPENSSLDL 0
+#define OPENSSLDL 1
 #endif
 
 #ifndef ISMBEDTLS
@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "global.h"
 inline int echo(const char* format, ...)
 {
     int n=0;
