@@ -31,7 +31,6 @@ struct TunnelReq
     int regtime;
 };
 
-
 struct Sockinfo
 {
     ssl_info *sslinfo;
@@ -46,8 +45,7 @@ struct Sockinfo
     int isauth;
 };
 
-
-extern  map<int,Sockinfo*>G_SockList;
-extern  list<TunnelInfo*> G_TunnelList;
-extern  map<string,TunnelReq*> G_TunnelAddr;
+extern map<int, Sockinfo *> G_SockList;
+extern list<TunnelInfo *> G_TunnelList;
+extern map<string, TunnelReq *> G_TunnelAddr;
 #endif

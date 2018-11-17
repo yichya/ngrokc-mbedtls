@@ -1,13 +1,13 @@
 #include "https.h"
 
-struct http_response* handle_redirect_get(struct http_response* hresp, char* custom_headers)
+struct http_response *handle_redirect_get(struct http_response *hresp, char *custom_headers)
 {
-	if(hresp->status_code_int > 300 && hresp->status_code_int < 399)
+	if (hresp->status_code_int > 300 && hresp->status_code_int < 399)
 	{
 		char *token = strtok(hresp->response_headers, "\r\n");
-		while(token != NULL)
+		while (token != NULL)
 		{
-			if(str_contains(token, "Location:"))
+			if (str_contains(token, "Location:"))
 			{
 				/* Extract url */
 				char *location = str_replace("Location: ", "", token);
@@ -26,14 +26,14 @@ struct http_response* handle_redirect_get(struct http_response* hresp, char* cus
 /*
 	Handles redirect if needed for head requests
 */
-struct http_response* handle_redirect_head(struct http_response* hresp, char* custom_headers)
+struct http_response *handle_redirect_head(struct http_response *hresp, char *custom_headers)
 {
-	if(hresp->status_code_int > 300 && hresp->status_code_int < 399)
+	if (hresp->status_code_int > 300 && hresp->status_code_int < 399)
 	{
 		char *token = strtok(hresp->response_headers, "\r\n");
-		while(token != NULL)
+		while (token != NULL)
 		{
-			if(str_contains(token, "Location:"))
+			if (str_contains(token, "Location:"))
 			{
 				/* Extract url */
 				char *location = str_replace("Location: ", "", token);
@@ -52,14 +52,14 @@ struct http_response* handle_redirect_head(struct http_response* hresp, char* cu
 /*
 	Handles redirect if needed for post requests
 */
-struct http_response* handle_redirect_post(struct http_response* hresp, char* custom_headers, char *post_data)
+struct http_response *handle_redirect_post(struct http_response *hresp, char *custom_headers, char *post_data)
 {
-	if(hresp->status_code_int > 300 && hresp->status_code_int < 399)
+	if (hresp->status_code_int > 300 && hresp->status_code_int < 399)
 	{
 		char *token = strtok(hresp->response_headers, "\r\n");
-		while(token != NULL)
+		while (token != NULL)
 		{
-			if(str_contains(token, "Location:"))
+			if (str_contains(token, "Location:"))
 			{
 				/* Extract url */
 				char *location = str_replace("Location: ", "", token);
@@ -78,25 +78,24 @@ struct http_response* handle_redirect_post(struct http_response* hresp, char* cu
 /*
 	Makes a HTTP request and returns the response
 */
-struct http_response* http_req(char *http_headers, struct parsed_url *purl)
+struct http_response *http_req(char *http_headers, struct parsed_url *purl)
 {
 	/* Parse url */
-	if(purl == NULL)
+	if (purl == NULL)
 	{
 		printf("Unable to parse url");
 		return NULL;
 	}
 
-
 	/* Declare variable */
 	int sock;
 	int tmpres;
-	char buf[BUFSIZ+1];
+	char buf[BUFSIZ + 1];
 	struct sockaddr_in remote;
 
 	/* Allocate memeory for htmlcontent */
-	struct http_response *hresp = (struct http_response*)malloc(sizeof(struct http_response));
-	if(hresp == NULL)
+	struct http_response *hresp = (struct http_response *)malloc(sizeof(struct http_response));
+	if (hresp == NULL)
 	{
 		printf("Unable to allocate memory for htmlcontent.");
 		return NULL;
@@ -108,73 +107,71 @@ struct http_response* http_req(char *http_headers, struct parsed_url *purl)
 	hresp->status_text = NULL;
 
 	/* Create TCP socket */
-	if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
 	{
-	    printf("Can't create TCP socket");
-	    free(hresp);
+		printf("Can't create TCP socket");
+		free(hresp);
 		return NULL;
 	}
 
 	/* Set remote->sin_addr.s_addr */
 	remote.sin_family = AF_INET;
-    #if WIN32
-    remote.sin_addr.s_addr= inet_addr(purl->ip);
-    #else
-  	tmpres = inet_pton(AF_INET, purl->ip, (void *)(&(remote.sin_addr.s_addr)));
-  	if( tmpres < 0)
-  	{
-    	printf("Can't set remote->sin_addr.s_addr");
-    	free(hresp);
-    	return NULL;
-  	}
-	else if(tmpres == 0)
-  	{
+#if WIN32
+	remote.sin_addr.s_addr = inet_addr(purl->ip);
+#else
+	tmpres = inet_pton(AF_INET, purl->ip, (void *)(&(remote.sin_addr.s_addr)));
+	if (tmpres < 0)
+	{
+		printf("Can't set remote->sin_addr.s_addr");
+		free(hresp);
+		return NULL;
+	}
+	else if (tmpres == 0)
+	{
 		printf("Not a valid IP");
 		free(hresp);
-    	return NULL;
-  	}
-    #endif // WIN32
+		return NULL;
+	}
+#endif // WIN32
 	remote.sin_port = htons(atoi(purl->port));
 
 	/* Connect */
-	if(connect(sock, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0)
+	if (connect(sock, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0)
 	{
-	    printf("Could not connect");
-	    free(hresp);
+		printf("Could not connect");
+		free(hresp);
 		return NULL;
-
 	}
 	ssl_info *sslinfo;
-	if ( strcmp(purl->scheme,"https")==0)
+	if (strcmp(purl->scheme, "https") == 0)
 	{
 
-           sslinfo=(ssl_info*)malloc(sizeof(ssl_info));
-           if(ssl_init_info(&sock,sslinfo)==-1)
-           {
-               ssl_free_info(sslinfo);
-               free(sslinfo);
-               free(hresp);
-               return NULL;
-           }
-
+		sslinfo = (ssl_info *)malloc(sizeof(ssl_info));
+		if (ssl_init_info(&sock, sslinfo) == -1)
+		{
+			ssl_free_info(sslinfo);
+			free(sslinfo);
+			free(hresp);
+			return NULL;
+		}
 	}
 
 	/* Send headers to server */
 	int sent = 0;
-	while(sent < strlen(http_headers))
+	while (sent < strlen(http_headers))
 	{
-        if ( strcmp(purl->scheme,"https")==0)
-        {
-            tmpres = ssl_write(&sslinfo->ssl, (unsigned char*)http_headers+sent, strlen(http_headers)-sent);
-        }
-        else
-        {
-            tmpres = send(sock, http_headers+sent, strlen(http_headers)-sent, 0);
-        }
-		if(tmpres == -1)
+		if (strcmp(purl->scheme, "https") == 0)
+		{
+			tmpres = ssl_write(&sslinfo->ssl, (unsigned char *)http_headers + sent, strlen(http_headers) - sent);
+		}
+		else
+		{
+			tmpres = send(sock, http_headers + sent, strlen(http_headers) - sent, 0);
+		}
+		if (tmpres == -1)
 		{
 			printf("Can't send headers");
-			if ( strcmp(purl->scheme,"https")==0)
+			if (strcmp(purl->scheme, "https") == 0)
 			{
 				ssl_free_info(sslinfo);
 				free(sslinfo);
@@ -183,63 +180,62 @@ struct http_response* http_req(char *http_headers, struct parsed_url *purl)
 			return NULL;
 		}
 		sent += tmpres;
-	 }
+	}
 
 	/* Recieve into response*/
-	char *response = (char*)malloc(0);
+	char *response = (char *)malloc(0);
 	char BUF[BUFSIZ];
 	int recived_len = 0;
 
-	if ( strcmp(purl->scheme,"https")==0)
+	if (strcmp(purl->scheme, "https") == 0)
 	{
-	   while((recived_len = ssl_read(&sslinfo->ssl, (unsigned char *)BUF, BUFSIZ-1)) > 0)
-        {
-            BUF[recived_len] = '\0';
-            response = (char*)realloc(response, strlen(response) + recived_len + 1);
-           // sprintf(response, "%s%s", response, BUF);
-            memcpy(response+strlen(response),BUF,recived_len+1);
-        }
+		while ((recived_len = ssl_read(&sslinfo->ssl, (unsigned char *)BUF, BUFSIZ - 1)) > 0)
+		{
+			BUF[recived_len] = '\0';
+			response = (char *)realloc(response, strlen(response) + recived_len + 1);
+			// sprintf(response, "%s%s", response, BUF);
+			memcpy(response + strlen(response), BUF, recived_len + 1);
+		}
 	}
 	else
 	{
-        while((recived_len = recv(sock, BUF, BUFSIZ-1, 0)) > 0)
-        {
-            BUF[recived_len] = '\0';
-            response = (char*)realloc(response, strlen(response) + recived_len + 1);
-           // sprintf(response, "%s%s", response, BUF);
-            memcpy(response+strlen(response),BUF,recived_len+1);
-        }
+		while ((recived_len = recv(sock, BUF, BUFSIZ - 1, 0)) > 0)
+		{
+			BUF[recived_len] = '\0';
+			response = (char *)realloc(response, strlen(response) + recived_len + 1);
+			// sprintf(response, "%s%s", response, BUF);
+			memcpy(response + strlen(response), BUF, recived_len + 1);
+		}
 	}
 
-    //POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY remote close notify
-	if (recived_len < 0&&recived_len!=POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY)
-    {
+	//POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY remote close notify
+	if (recived_len < 0 && recived_len != POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY)
+	{
 		free(http_headers);
-		#ifdef _WIN32
-			closesocket(sock);
-		#else
-			close(sock);
-		#endif
-        if(strcmp(purl->scheme,"https")==0)
+#ifdef _WIN32
+		closesocket(sock);
+#else
+		close(sock);
+#endif
+		if (strcmp(purl->scheme, "https") == 0)
 		{
-		    ssl_free_info(sslinfo);
-		    free(sslinfo);
-        }
-        free(response);
-        free(hresp);
+			ssl_free_info(sslinfo);
+			free(sslinfo);
+		}
+		free(response);
+		free(hresp);
 		return NULL;
-    }
+	}
 
 	/* Reallocate response */
-	response = (char*)realloc(response, strlen(response) + 1);
+	response = (char *)realloc(response, strlen(response) + 1);
 
-
-	/* Close socket */
-	#ifdef _WIN32
-		closesocket(sock);
-	#else
-		close(sock);
-	#endif
+/* Close socket */
+#ifdef _WIN32
+	closesocket(sock);
+#else
+	close(sock);
+#endif
 
 	/* Parse status code and text */
 	char *status_line = get_until(response, "\r\n");
@@ -262,53 +258,51 @@ struct http_response* http_req(char *http_headers, struct parsed_url *purl)
 	/* Assign request url */
 	hresp->request_uri = purl;
 
-
-
-    int responselen=strlen(response);
-    int bodystart=strpos(response,"\r\n\r\n",0);
+	int responselen = strlen(response);
+	int bodystart = strpos(response, "\r\n\r\n", 0);
 	char *body;
-    if(bodystart+4>=responselen||bodystart<1)
-    {
-        body="";
-    }
-    else
-    {
-        body=response+bodystart+4;
-    }
-   //old
-    //char *body = strstr(response, "\r\n\r\n");
+	if (bodystart + 4 >= responselen || bodystart < 1)
+	{
+		body = "";
+	}
+	else
+	{
+		body = response + bodystart + 4;
+	}
+	//old
+	//char *body = strstr(response, "\r\n\r\n");
 	//body = str_replace("\r\n\r\n", "", body);
 	hresp->body = body;
 
 	/* Return response */
-	if (strcmp(purl->scheme,"https")==0)
+	if (strcmp(purl->scheme, "https") == 0)
 	{
-	    ssl_free_info(sslinfo);
-	    free(sslinfo);
-    }
+		ssl_free_info(sslinfo);
+		free(sslinfo);
+	}
 	return hresp;
 }
 
 /*
 	Makes a HTTP GET request to the given url
 */
-struct http_response* http_get(char *url, char *custom_headers)
+struct http_response *http_get(char *url, char *custom_headers)
 {
 	/* Parse url */
 	struct parsed_url *purl = parse_url(url);
-	if(purl == NULL)
+	if (purl == NULL)
 	{
 		printf("Unable to parse url");
 		return NULL;
 	}
 
 	/* Declare variable */
-	char *http_headers = (char*)malloc(1024);
+	char *http_headers = (char *)malloc(1024);
 
 	/* Build query/headers */
-	if(purl->path != NULL)
+	if (purl->path != NULL)
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "GET /%s?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->path, purl->query, purl->host);
 		}
@@ -319,7 +313,7 @@ struct http_response* http_get(char *url, char *custom_headers)
 	}
 	else
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "GET /?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->query, purl->host);
 		}
@@ -330,28 +324,28 @@ struct http_response* http_get(char *url, char *custom_headers)
 	}
 
 	/* Handle authorisation if needed */
-	if(purl->username != NULL)
+	if (purl->username != NULL)
 	{
 		/* Format username:password pair */
-		char *upwd = (char*)malloc(1024);
+		char *upwd = (char *)malloc(1024);
 		sprintf(upwd, "%s:%s", purl->username, purl->password);
-		upwd = (char*)realloc(upwd, strlen(upwd) + 1);
+		upwd = (char *)realloc(upwd, strlen(upwd) + 1);
 
 		/* Base64 encode */
 		char *base64 = base64_encode(upwd);
 
 		/* Form header */
-		char *auth_header = (char*)malloc(1024);
+		char *auth_header = (char *)malloc(1024);
 		sprintf(auth_header, "Authorization: Basic %s\r\n", base64);
-		auth_header = (char*)realloc(auth_header, strlen(auth_header) + 1);
+		auth_header = (char *)realloc(auth_header, strlen(auth_header) + 1);
 
 		/* Add to header */
-		http_headers = (char*)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
+		http_headers = (char *)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
 		sprintf(http_headers, "%s%s", http_headers, auth_header);
 	}
 
 	/* Add custom headers, and close */
-	if(custom_headers != NULL)
+	if (custom_headers != NULL)
 	{
 		sprintf(http_headers, "%s%s\r\n", http_headers, custom_headers);
 	}
@@ -359,14 +353,14 @@ struct http_response* http_get(char *url, char *custom_headers)
 	{
 		sprintf(http_headers, "%s\r\n", http_headers);
 	}
-	http_headers = (char*)realloc(http_headers, strlen(http_headers) + 1);
+	http_headers = (char *)realloc(http_headers, strlen(http_headers) + 1);
 
 	/* Make request and return response */
 	struct http_response *hresp = http_req(http_headers, purl);
-    if(hresp!=NULL)
-    {
-       return handle_redirect_get(hresp, custom_headers);
-    }
+	if (hresp != NULL)
+	{
+		return handle_redirect_get(hresp, custom_headers);
+	}
 	/* Handle redirect */
 	return NULL;
 }
@@ -374,23 +368,23 @@ struct http_response* http_get(char *url, char *custom_headers)
 /*
 	Makes a HTTP POST request to the given url
 */
-struct http_response* http_post(char *url, char *custom_headers, char *post_data)
+struct http_response *http_post(char *url, char *custom_headers, char *post_data)
 {
 	/* Parse url */
 	struct parsed_url *purl = parse_url(url);
-	if(purl == NULL)
+	if (purl == NULL)
 	{
 		printf("Unable to parse url");
 		return NULL;
 	}
 
 	/* Declare variable */
-	char *http_headers = (char*)malloc(1024);
+	char *http_headers = (char *)malloc(1024);
 
 	/* Build query/headers */
-	if(purl->path != NULL)
+	if (purl->path != NULL)
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "POST /%s?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\nContent-Length:%d\r\nContent-Type:application/x-www-form-urlencoded\r\n", purl->path, purl->query, purl->host, strlen(post_data));
 		}
@@ -401,7 +395,7 @@ struct http_response* http_post(char *url, char *custom_headers, char *post_data
 	}
 	else
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "POST /?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\nContent-Length:%d\r\nContent-Type:application/x-www-form-urlencoded\r\n", purl->query, purl->host, strlen(post_data));
 		}
@@ -412,27 +406,27 @@ struct http_response* http_post(char *url, char *custom_headers, char *post_data
 	}
 
 	/* Handle authorisation if needed */
-	if(purl->username != NULL)
+	if (purl->username != NULL)
 	{
 		/* Format username:password pair */
-		char *upwd = (char*)malloc(1024);
+		char *upwd = (char *)malloc(1024);
 		sprintf(upwd, "%s:%s", purl->username, purl->password);
-		upwd = (char*)realloc(upwd, strlen(upwd) + 1);
+		upwd = (char *)realloc(upwd, strlen(upwd) + 1);
 
 		/* Base64 encode */
 		char *base64 = base64_encode(upwd);
 
 		/* Form header */
-		char *auth_header = (char*)malloc(1024);
+		char *auth_header = (char *)malloc(1024);
 		sprintf(auth_header, "Authorization: Basic %s\r\n", base64);
-		auth_header = (char*)realloc(auth_header, strlen(auth_header) + 1);
+		auth_header = (char *)realloc(auth_header, strlen(auth_header) + 1);
 
 		/* Add to header */
-		http_headers = (char*)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
+		http_headers = (char *)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
 		sprintf(http_headers, "%s%s", http_headers, auth_header);
 	}
 
-	if(custom_headers != NULL)
+	if (custom_headers != NULL)
 	{
 		sprintf(http_headers, "%s%s\r\n", http_headers, custom_headers);
 		sprintf(http_headers, "%s\r\n%s", http_headers, post_data);
@@ -441,15 +435,15 @@ struct http_response* http_post(char *url, char *custom_headers, char *post_data
 	{
 		sprintf(http_headers, "%s\r\n%s", http_headers, post_data);
 	}
-	http_headers = (char*)realloc(http_headers, strlen(http_headers) + 1);
+	http_headers = (char *)realloc(http_headers, strlen(http_headers) + 1);
 
 	/* Make request and return response */
 	struct http_response *hresp = http_req(http_headers, purl);
-  //  printf("post_data:%s\r\n",post_data);
-    if(hresp==NULL)
-    {
-     return NULL;
-    }
+	//  printf("post_data:%s\r\n",post_data);
+	if (hresp == NULL)
+	{
+		return NULL;
+	}
 	/* Handle redirect */
 	return handle_redirect_post(hresp, custom_headers, post_data);
 }
@@ -457,23 +451,23 @@ struct http_response* http_post(char *url, char *custom_headers, char *post_data
 /*
 	Makes a HTTP HEAD request to the given url
 */
-struct http_response* http_head(char *url, char *custom_headers)
+struct http_response *http_head(char *url, char *custom_headers)
 {
 	/* Parse url */
 	struct parsed_url *purl = parse_url(url);
-	if(purl == NULL)
+	if (purl == NULL)
 	{
 		printf("Unable to parse url");
 		return NULL;
 	}
 
 	/* Declare variable */
-	char *http_headers = (char*)malloc(1024);
+	char *http_headers = (char *)malloc(1024);
 
 	/* Build query/headers */
-	if(purl->path != NULL)
+	if (purl->path != NULL)
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "HEAD /%s?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->path, purl->query, purl->host);
 		}
@@ -484,7 +478,7 @@ struct http_response* http_head(char *url, char *custom_headers)
 	}
 	else
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "HEAD/?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->query, purl->host);
 		}
@@ -495,27 +489,27 @@ struct http_response* http_head(char *url, char *custom_headers)
 	}
 
 	/* Handle authorisation if needed */
-	if(purl->username != NULL)
+	if (purl->username != NULL)
 	{
 		/* Format username:password pair */
-		char *upwd = (char*)malloc(1024);
+		char *upwd = (char *)malloc(1024);
 		sprintf(upwd, "%s:%s", purl->username, purl->password);
-		upwd = (char*)realloc(upwd, strlen(upwd) + 1);
+		upwd = (char *)realloc(upwd, strlen(upwd) + 1);
 
 		/* Base64 encode */
 		char *base64 = base64_encode(upwd);
 
 		/* Form header */
-		char *auth_header = (char*)malloc(1024);
+		char *auth_header = (char *)malloc(1024);
 		sprintf(auth_header, "Authorization: Basic %s\r\n", base64);
-		auth_header = (char*)realloc(auth_header, strlen(auth_header) + 1);
+		auth_header = (char *)realloc(auth_header, strlen(auth_header) + 1);
 
 		/* Add to header */
-		http_headers = (char*)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
+		http_headers = (char *)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
 		sprintf(http_headers, "%s%s", http_headers, auth_header);
 	}
 
-	if(custom_headers != NULL)
+	if (custom_headers != NULL)
 	{
 		sprintf(http_headers, "%s%s\r\n", http_headers, custom_headers);
 	}
@@ -523,7 +517,7 @@ struct http_response* http_head(char *url, char *custom_headers)
 	{
 		sprintf(http_headers, "%s\r\n", http_headers);
 	}
-	http_headers = (char*)realloc(http_headers, strlen(http_headers) + 1);
+	http_headers = (char *)realloc(http_headers, strlen(http_headers) + 1);
 
 	/* Make request and return response */
 	struct http_response *hresp = http_req(http_headers, purl);
@@ -535,23 +529,23 @@ struct http_response* http_head(char *url, char *custom_headers)
 /*
 	Do HTTP OPTIONs requests
 */
-struct http_response* http_options(char *url)
+struct http_response *http_options(char *url)
 {
 	/* Parse url */
 	struct parsed_url *purl = parse_url(url);
-	if(purl == NULL)
+	if (purl == NULL)
 	{
 		printf("Unable to parse url");
 		return NULL;
 	}
 
 	/* Declare variable */
-	char *http_headers = (char*)malloc(1024);
+	char *http_headers = (char *)malloc(1024);
 
 	/* Build query/headers */
-	if(purl->path != NULL)
+	if (purl->path != NULL)
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "OPTIONS /%s?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->path, purl->query, purl->host);
 		}
@@ -562,7 +556,7 @@ struct http_response* http_options(char *url)
 	}
 	else
 	{
-		if(purl->query != NULL)
+		if (purl->query != NULL)
 		{
 			sprintf(http_headers, "OPTIONS/?%s HTTP/1.1\r\nHost:%s\r\nConnection:close\r\n", purl->query, purl->host);
 		}
@@ -573,29 +567,29 @@ struct http_response* http_options(char *url)
 	}
 
 	/* Handle authorisation if needed */
-	if(purl->username != NULL)
+	if (purl->username != NULL)
 	{
 		/* Format username:password pair */
-		char *upwd = (char*)malloc(1024);
+		char *upwd = (char *)malloc(1024);
 		sprintf(upwd, "%s:%s", purl->username, purl->password);
-		upwd = (char*)realloc(upwd, strlen(upwd) + 1);
+		upwd = (char *)realloc(upwd, strlen(upwd) + 1);
 
 		/* Base64 encode */
 		char *base64 = base64_encode(upwd);
 
 		/* Form header */
-		char *auth_header = (char*)malloc(1024);
+		char *auth_header = (char *)malloc(1024);
 		sprintf(auth_header, "Authorization: Basic %s\r\n", base64);
-		auth_header = (char*)realloc(auth_header, strlen(auth_header) + 1);
+		auth_header = (char *)realloc(auth_header, strlen(auth_header) + 1);
 
 		/* Add to header */
-		http_headers = (char*)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
+		http_headers = (char *)realloc(http_headers, strlen(http_headers) + strlen(auth_header) + 2);
 		sprintf(http_headers, "%s%s", http_headers, auth_header);
 	}
 
 	/* Build headers */
 	sprintf(http_headers, "%s\r\n", http_headers);
-	http_headers = (char*)realloc(http_headers, strlen(http_headers) + 1);
+	http_headers = (char *)realloc(http_headers, strlen(http_headers) + 1);
 
 	/* Make request and return response */
 	struct http_response *hresp = http_req(http_headers, purl);
@@ -609,29 +603,30 @@ struct http_response* http_options(char *url)
 */
 void http_response_free(struct http_response *hresp)
 {
-	if(hresp != NULL)
+	if (hresp != NULL)
 	{
-		if(hresp->request_uri != NULL) parsed_url_free(hresp->request_uri);
-		if(hresp->body != NULL) free(hresp->body);
-		if(hresp->status_code != NULL) free(hresp->status_code);
-		if(hresp->status_text != NULL) free(hresp->status_text);
-		if(hresp->request_headers != NULL) free(hresp->request_headers);
-		if(hresp->response_headers != NULL) free(hresp->response_headers);
+		if (hresp->request_uri != NULL)
+			parsed_url_free(hresp->request_uri);
+		if (hresp->body != NULL)
+			free(hresp->body);
+		if (hresp->status_code != NULL)
+			free(hresp->status_code);
+		if (hresp->status_text != NULL)
+			free(hresp->status_text);
+		if (hresp->request_headers != NULL)
+			free(hresp->request_headers);
+		if (hresp->response_headers != NULL)
+			free(hresp->response_headers);
 		free(hresp);
 	}
 }
-
-
-
-
-
 
 /*
 	Gets the offset of one string in another string
 */
 int str_index_of(const char *a, char *b)
 {
-	char *offset = (char*)strstr(a, b);
+	char *offset = (char *)strstr(a, b);
 	return offset - a;
 }
 
@@ -640,8 +635,8 @@ int str_index_of(const char *a, char *b)
 */
 int str_contains(const char *haystack, const char *needle)
 {
-	char *pos = (char*)strstr(haystack, needle);
-	if(pos)
+	char *pos = (char *)strstr(haystack, needle);
+	if (pos)
 		return 1;
 	else
 		return 0;
@@ -650,10 +645,10 @@ int str_contains(const char *haystack, const char *needle)
 /*
 	Removes last character from string
 */
-char* trim_end(char *string, char to_trim)
+char *trim_end(char *string, char to_trim)
 {
-	char last_char = string[strlen(string) -1];
-	if(last_char == to_trim)
+	char last_char = string[strlen(string) - 1];
+	if (last_char == to_trim)
 	{
 		char *new_string = string;
 		new_string[strlen(string) - 1] = 0;
@@ -668,9 +663,9 @@ char* trim_end(char *string, char to_trim)
 /*
 	Concecates two strings, a wrapper for strcat from string.h, handles the resizing and copying
 */
-char* str_cat(char *a, char *b)
+char *str_cat(char *a, char *b)
 {
-	char *target = (char*)malloc(strlen(a) + strlen(b) + 1);
+	char *target = (char *)malloc(strlen(a) + strlen(b) + 1);
 	strcpy(target, a);
 	strcat(target, b);
 	return target;
@@ -690,34 +685,34 @@ char to_hex(char code)
 */
 char *urlencode(char *str)
 {
-	char *pstr = str, *buf = (char*)malloc(strlen(str) * 3 + 1), *pbuf = buf;
-  	while (*pstr)
+	char *pstr = str, *buf = (char *)malloc(strlen(str) * 3 + 1), *pbuf = buf;
+	while (*pstr)
 	{
-    	if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~')
-      		*pbuf++ = *pstr;
-    	else if (*pstr == ' ')
-      		*pbuf++ = '+';
-    	else
-      		*pbuf++ = '%', *pbuf++ = to_hex(*pstr >> 4), *pbuf++ = to_hex(*pstr & 15);
-    	pstr++;
-  	}
-  	*pbuf = '\0';
-  	return buf;
+		if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~')
+			*pbuf++ = *pstr;
+		else if (*pstr == ' ')
+			*pbuf++ = '+';
+		else
+			*pbuf++ = '%', *pbuf++ = to_hex(*pstr >> 4), *pbuf++ = to_hex(*pstr & 15);
+		pstr++;
+	}
+	*pbuf = '\0';
+	return buf;
 }
 
 /*
 	Replacement for the string.h strndup, fixes a bug
 */
-char *str_ndup (const char *str, size_t max)
+char *str_ndup(const char *str, size_t max)
 {
-    size_t len = strnlen(str, max);
-    char *res = (char*)malloc (len + 1);
-    if (res)
-    {
-        memcpy (res, str, len);
-        res[len] = '\0';
-    }
-    return res;
+	size_t len = strnlen(str, max);
+	char *res = (char *)malloc(len + 1);
+	if (res)
+	{
+		memcpy(res, str, len);
+		res[len] = '\0';
+	}
+	return res;
 }
 
 /*
@@ -725,52 +720,51 @@ char *str_ndup (const char *str, size_t max)
 */
 char *str_dup(const char *src)
 {
-   char *tmp = (char*)malloc(strlen(src) + 1);
-   if(tmp)
-       strcpy(tmp, src);
-   return tmp;
+	char *tmp = (char *)malloc(strlen(src) + 1);
+	if (tmp)
+		strcpy(tmp, src);
+	return tmp;
 }
 
 /*
  	Search and replace a string with another string , in a string
 */
-char *str_replace(char *search , char *replace , char *subject)
+char *str_replace(char *search, char *replace, char *subject)
 {
-	char  *p = NULL , *old = NULL , *new_subject = NULL ;
-	int c = 0 , search_size;
+	char *p = NULL, *old = NULL, *new_subject = NULL;
+	int c = 0, search_size;
 	search_size = strlen(search);
-	for(p = strstr(subject , search) ; p != NULL ; p = strstr(p + search_size , search))
+	for (p = strstr(subject, search); p != NULL; p = strstr(p + search_size, search))
 	{
 		c++;
 	}
-	c = ( strlen(replace) - search_size )*c + strlen(subject);
-	new_subject = (char*)malloc( c );
-	strcpy(new_subject , "");
+	c = (strlen(replace) - search_size) * c + strlen(subject);
+	new_subject = (char *)malloc(c);
+	strcpy(new_subject, "");
 	old = subject;
-	for(p = strstr(subject , search) ; p != NULL ; p = strstr(p + search_size , search))
+	for (p = strstr(subject, search); p != NULL; p = strstr(p + search_size, search))
 	{
-		strncpy(new_subject + strlen(new_subject) , old , p - old);
-		strcpy(new_subject + strlen(new_subject) , replace);
+		strncpy(new_subject + strlen(new_subject), old, p - old);
+		strcpy(new_subject + strlen(new_subject), replace);
 		old = p + search_size;
 	}
-	strcpy(new_subject + strlen(new_subject) , old);
+	strcpy(new_subject + strlen(new_subject), old);
 	return new_subject;
 }
 
 /*
 	Get's all characters until '*until' has been found
 */
-char* get_until(char *haystack, char *until)
+char *get_until(char *haystack, char *until)
 {
 	int offset = str_index_of(haystack, until);
 	return str_ndup(haystack, offset);
 }
 
-
 /* decodeblock - decode 4 '6-bit' characters into 3 8-bit binary bytes */
 void decodeblock(unsigned char in[], char *clrstr)
 {
-  	unsigned char out[4];
+	unsigned char out[4];
 	out[0] = in[0] << 2 | in[1] >> 4;
 	out[1] = in[1] << 4 | in[2] >> 2;
 	out[2] = in[2] << 6 | in[3] >> 0;
@@ -781,88 +775,90 @@ void decodeblock(unsigned char in[], char *clrstr)
 /*
 	Decodes a Base64 string
 */
-char* base64_decode(char *b64src)
+char *base64_decode(char *b64src)
 {
-	char *clrdst = (char*)malloc( ((strlen(b64src) - 1) / 3 ) * 4 + 4 + 50);
+	char *clrdst = (char *)malloc(((strlen(b64src) - 1) / 3) * 4 + 4 + 50);
 	char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	int c, phase, i;
 	unsigned char in[4];
 	char *p;
 	clrdst[0] = '\0';
-	phase = 0; i=0;
-	while(b64src[i])
+	phase = 0;
+	i = 0;
+	while (b64src[i])
 	{
-		c = (int) b64src[i];
-		if(c == '=')
+		c = (int)b64src[i];
+		if (c == '=')
 		{
 			decodeblock(in, clrdst);
 			break;
 		}
 		p = strchr(b64, c);
-		if(p)
+		if (p)
 		{
 			in[phase] = p - b64;
 			phase = (phase + 1) % 4;
-			if(phase == 0)
+			if (phase == 0)
 			{
 				decodeblock(in, clrdst);
-				in[0]=in[1]=in[2]=in[3]=0;
+				in[0] = in[1] = in[2] = in[3] = 0;
 			}
 		}
 		i++;
 	}
-	clrdst = (char*)realloc(clrdst, strlen(clrdst) + 1);
+	clrdst = (char *)realloc(clrdst, strlen(clrdst) + 1);
 	return clrdst;
 }
 
 /* encodeblock - encode 3 8-bit binary bytes as 4 '6-bit' characters */
-void encodeblock( unsigned char in[], char b64str[], int len )
+void encodeblock(unsigned char in[], char b64str[], int len)
 {
 	char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    unsigned char out[5];
-    out[0] = b64[ in[0] >> 2 ];
-    out[1] = b64[ ((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4) ];
-    out[2] = (unsigned char) (len > 1 ? b64[ ((in[1] & 0x0f) << 2) |
-             ((in[2] & 0xc0) >> 6) ] : '=');
-    out[3] = (unsigned char) (len > 2 ? b64[ in[2] & 0x3f ] : '=');
-    out[4] = '\0';
-    strncat((char *)b64str, (char *)out, sizeof(out));
+	unsigned char out[5];
+	out[0] = b64[in[0] >> 2];
+	out[1] = b64[((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)];
+	out[2] = (unsigned char)(len > 1 ? b64[((in[1] & 0x0f) << 2) |
+										   ((in[2] & 0xc0) >> 6)]
+									 : '=');
+	out[3] = (unsigned char)(len > 2 ? b64[in[2] & 0x3f] : '=');
+	out[4] = '\0';
+	strncat((char *)b64str, (char *)out, sizeof(out));
 }
 
 /*
 	Encodes a string with Base64
 */
-char* base64_encode(char *clrstr)
+char *base64_encode(char *clrstr)
 {
-	char *b64dst = (char*)malloc(strlen(clrstr) + 50);
+	char *b64dst = (char *)malloc(strlen(clrstr) + 50);
 	char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	unsigned char in[3];
 	int i, len = 0;
 	int j = 0;
 
 	b64dst[0] = '\0';
-	while(clrstr[j])
+	while (clrstr[j])
 	{
 		len = 0;
-		for(i=0; i<3; i++)
+		for (i = 0; i < 3; i++)
 		{
-			in[i] = (unsigned char) clrstr[j];
-			if(clrstr[j])
+			in[i] = (unsigned char)clrstr[j];
+			if (clrstr[j])
 			{
-				len++; j++;
+				len++;
+				j++;
 			}
-			else in[i] = 0;
+			else
+				in[i] = 0;
 		}
-		if( len )
+		if (len)
 		{
-			encodeblock( in, b64dst, len );
+			encodeblock(in, b64dst, len);
 		}
 	}
-	b64dst = (char*)realloc(b64dst, strlen(b64dst) + 1);
+	b64dst = (char *)realloc(b64dst, strlen(b64dst) + 1);
 	return b64dst;
 }
-
-
 
 /*
 	http-client-c
@@ -896,28 +892,36 @@ char* base64_encode(char *clrstr)
 */
 void parsed_url_free(struct parsed_url *purl)
 {
-    if ( NULL != purl )
+	if (NULL != purl)
 	{
-        if ( NULL != purl->scheme ) free(purl->scheme);
-        if ( NULL != purl->host ) free(purl->host);
-        if ( NULL != purl->port ) free(purl->port);
-        if ( NULL != purl->path )  free(purl->path);
-        if ( NULL != purl->query ) free(purl->query);
-        if ( NULL != purl->fragment ) free(purl->fragment);
-        if ( NULL != purl->username ) free(purl->username);
-        if ( NULL != purl->password ) free(purl->password);
-        free(purl);
-    }
+		if (NULL != purl->scheme)
+			free(purl->scheme);
+		if (NULL != purl->host)
+			free(purl->host);
+		if (NULL != purl->port)
+			free(purl->port);
+		if (NULL != purl->path)
+			free(purl->path);
+		if (NULL != purl->query)
+			free(purl->query);
+		if (NULL != purl->fragment)
+			free(purl->fragment);
+		if (NULL != purl->username)
+			free(purl->username);
+		if (NULL != purl->password)
+			free(purl->password);
+		free(purl);
+	}
 }
 
 /*
 	Retrieves the IP adress of a hostname
 */
-char* hostname_to_ip(char *hostname)
+char *hostname_to_ip(char *hostname)
 {
 	char *ip = "0.0.0.0";
 	struct hostent *h;
-	if ((h=gethostbyname(hostname)) == NULL)
+	if ((h = gethostbyname(hostname)) == NULL)
 	{
 		printf("gethostbyname");
 		return NULL;
@@ -930,7 +934,7 @@ char* hostname_to_ip(char *hostname)
 */
 int is_scheme_char(int c)
 {
-    return (!isalpha(c) && '+' != c && '-' != c && '.' != c) ? 0 : 1;
+	return (!isalpha(c) && '+' != c && '-' != c && '.' != c) ? 0 : 1;
 }
 
 /*
@@ -943,234 +947,244 @@ struct parsed_url *parse_url(const char *url)
 {
 
 	/* Define variable */
-    struct parsed_url *purl;
-    const char *tmpstr;
-    const char *curstr;
-    int len;
-    int i;
-    int userpass_flag;
-    int bracket_flag;
+	struct parsed_url *purl;
+	const char *tmpstr;
+	const char *curstr;
+	int len;
+	int i;
+	int userpass_flag;
+	int bracket_flag;
 
-    /* Allocate the parsed url storage */
-    purl = (struct parsed_url*)malloc(sizeof(struct parsed_url));
-    if ( NULL == purl )
+	/* Allocate the parsed url storage */
+	purl = (struct parsed_url *)malloc(sizeof(struct parsed_url));
+	if (NULL == purl)
 	{
-        return NULL;
-    }
-    purl->scheme = NULL;
-    purl->host = NULL;
-    purl->port = NULL;
-    purl->path = NULL;
-    purl->query = NULL;
-    purl->fragment = NULL;
-    purl->username = NULL;
-    purl->password = NULL;
-    curstr = url;
+		return NULL;
+	}
+	purl->scheme = NULL;
+	purl->host = NULL;
+	purl->port = NULL;
+	purl->path = NULL;
+	purl->query = NULL;
+	purl->fragment = NULL;
+	purl->username = NULL;
+	purl->password = NULL;
+	curstr = url;
 
-    /*
+	/*
      * <scheme>:<scheme-specific-part>
      * <scheme> := [a-z\+\-\.]+
      *             upper case = lower case for resiliency
      */
-    /* Read scheme */
-    tmpstr = strchr(curstr, ':');
-    if ( NULL == tmpstr )
+	/* Read scheme */
+	tmpstr = strchr(curstr, ':');
+	if (NULL == tmpstr)
 	{
-        parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+		parsed_url_free(purl);
+		fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
 
-        return NULL;
-    }
+		return NULL;
+	}
 
-    /* Get the scheme length */
-    len = tmpstr - curstr;
+	/* Get the scheme length */
+	len = tmpstr - curstr;
 
-    /* Check restrictions */
-    for ( i = 0; i < len; i++ )
+	/* Check restrictions */
+	for (i = 0; i < len; i++)
 	{
-        if (is_scheme_char(curstr[i]) == 0)
+		if (is_scheme_char(curstr[i]) == 0)
 		{
-            /* Invalid format */
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-    }
-    /* Copy the scheme to the storage */
-    purl->scheme = (char*)malloc(sizeof(char) * (len + 1));
-    if ( NULL == purl->scheme )
+			/* Invalid format */
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+	}
+	/* Copy the scheme to the storage */
+	purl->scheme = (char *)malloc(sizeof(char) * (len + 1));
+	if (NULL == purl->scheme)
 	{
-        parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+		parsed_url_free(purl);
+		fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
 
-        return NULL;
-    }
+		return NULL;
+	}
 
-    (void)strncpy(purl->scheme, curstr, len);
-    purl->scheme[len] = '\0';
+	(void)strncpy(purl->scheme, curstr, len);
+	purl->scheme[len] = '\0';
 
-    /* Make the character to lower if it is upper case. */
-    for ( i = 0; i < len; i++ )
+	/* Make the character to lower if it is upper case. */
+	for (i = 0; i < len; i++)
 	{
-        purl->scheme[i] = tolower(purl->scheme[i]);
-    }
+		purl->scheme[i] = tolower(purl->scheme[i]);
+	}
 
-    /* Skip ':' */
-    tmpstr++;
-    curstr = tmpstr;
+	/* Skip ':' */
+	tmpstr++;
+	curstr = tmpstr;
 
-    /*
+	/*
      * //<user>:<password>@<host>:<port>/<url-path>
      * Any ":", "@" and "/" must be encoded.
      */
-    /* Eat "//" */
-    for ( i = 0; i < 2; i++ )
+	/* Eat "//" */
+	for (i = 0; i < 2; i++)
 	{
-        if ( '/' != *curstr )
+		if ('/' != *curstr)
 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        curstr++;
-    }
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		curstr++;
+	}
 
-    /* Check if the user (and password) are specified. */
-    userpass_flag = 0;
-    tmpstr = curstr;
-    while ( '\0' != *tmpstr )
+	/* Check if the user (and password) are specified. */
+	userpass_flag = 0;
+	tmpstr = curstr;
+	while ('\0' != *tmpstr)
 	{
-        if ( '@' == *tmpstr )
+		if ('@' == *tmpstr)
 		{
-            /* Username and password are specified */
-            userpass_flag = 1;
-            break;
-        }
-		else if ( '/' == *tmpstr )
+			/* Username and password are specified */
+			userpass_flag = 1;
+			break;
+		}
+		else if ('/' == *tmpstr)
 		{
-            /* End of <host>:<port> specification */
-            userpass_flag = 0;
-            break;
-        }
-        tmpstr++;
-    }
+			/* End of <host>:<port> specification */
+			userpass_flag = 0;
+			break;
+		}
+		tmpstr++;
+	}
 
-    /* User and password specification */
-    tmpstr = curstr;
-    if ( userpass_flag )
+	/* User and password specification */
+	tmpstr = curstr;
+	if (userpass_flag)
 	{
-        /* Read username */
-        while ( '\0' != *tmpstr && ':' != *tmpstr && '@' != *tmpstr )
+		/* Read username */
+		while ('\0' != *tmpstr && ':' != *tmpstr && '@' != *tmpstr)
 		{
-            tmpstr++;
-        }
-        len = tmpstr - curstr;
-        purl->username = (char*)malloc(sizeof(char) * (len + 1));
-        if ( NULL == purl->username )
+			tmpstr++;
+		}
+		len = tmpstr - curstr;
+		purl->username = (char *)malloc(sizeof(char) * (len + 1));
+		if (NULL == purl->username)
 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        (void)strncpy(purl->username, curstr, len);
-        purl->username[len] = '\0';
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		(void)strncpy(purl->username, curstr, len);
+		purl->username[len] = '\0';
 
-        /* Proceed current pointer */
-        curstr = tmpstr;
-        if ( ':' == *curstr )
+		/* Proceed current pointer */
+		curstr = tmpstr;
+		if (':' == *curstr)
 		{
-            /* Skip ':' */
-            curstr++;
+			/* Skip ':' */
+			curstr++;
 
-            /* Read password */
-            tmpstr = curstr;
-            while ( '\0' != *tmpstr && '@' != *tmpstr )
+			/* Read password */
+			tmpstr = curstr;
+			while ('\0' != *tmpstr && '@' != *tmpstr)
 			{
-                tmpstr++;
-            }
-            len = tmpstr - curstr;
-            purl->password = (char*)malloc(sizeof(char) * (len + 1));
-            if ( NULL == purl->password )
+				tmpstr++;
+			}
+			len = tmpstr - curstr;
+			purl->password = (char *)malloc(sizeof(char) * (len + 1));
+			if (NULL == purl->password)
 			{
-                parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-                return NULL;
-            }
-            (void)strncpy(purl->password, curstr, len);
-            purl->password[len] = '\0';
-            curstr = tmpstr;
-        }
-        /* Skip '@' */
-        if ( '@' != *curstr )
+				parsed_url_free(purl);
+				fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+				return NULL;
+			}
+			(void)strncpy(purl->password, curstr, len);
+			purl->password[len] = '\0';
+			curstr = tmpstr;
+		}
+		/* Skip '@' */
+		if ('@' != *curstr)
 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        curstr++;
-    }
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		curstr++;
+	}
 
-    if ( '[' == *curstr )
+	if ('[' == *curstr)
 	{
-        bracket_flag = 1;
-    }
+		bracket_flag = 1;
+	}
 	else
 	{
-        bracket_flag = 0;
-    }
-    /* Proceed on by delimiters with reading host */
-    tmpstr = curstr;
-    while ( '\0' != *tmpstr ) {
-        if ( bracket_flag && ']' == *tmpstr )
- 		{
-            /* End of IPv6 address. */
-            tmpstr++;
-            break;
-        }
-		else if ( !bracket_flag && (':' == *tmpstr || '/' == *tmpstr) )
-		{
-            /* Port number is specified. */
-            break;
-        }
-        tmpstr++;
-    }
-    len = tmpstr - curstr;
-    purl->host = (char*)malloc(sizeof(char) * (len + 1));
-    if ( NULL == purl->host || len <= 0 )
+		bracket_flag = 0;
+	}
+	/* Proceed on by delimiters with reading host */
+	tmpstr = curstr;
+	while ('\0' != *tmpstr)
 	{
-        parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-        return NULL;
-    }
-    (void)strncpy(purl->host, curstr, len);
-    purl->host[len] = '\0';
-    curstr = tmpstr;
+		if (bracket_flag && ']' == *tmpstr)
+		{
+			/* End of IPv6 address. */
+			tmpstr++;
+			break;
+		}
+		else if (!bracket_flag && (':' == *tmpstr || '/' == *tmpstr))
+		{
+			/* Port number is specified. */
+			break;
+		}
+		tmpstr++;
+	}
+	len = tmpstr - curstr;
+	purl->host = (char *)malloc(sizeof(char) * (len + 1));
+	if (NULL == purl->host || len <= 0)
+	{
+		parsed_url_free(purl);
+		fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+		return NULL;
+	}
+	(void)strncpy(purl->host, curstr, len);
+	purl->host[len] = '\0';
+	curstr = tmpstr;
 
-    /* Is port number specified? */
-    if ( ':' == *curstr )
+	/* Is port number specified? */
+	if (':' == *curstr)
 	{
-        curstr++;
-        /* Read port number */
-        tmpstr = curstr;
-        while ( '\0' != *tmpstr && '/' != *tmpstr )
+		curstr++;
+		/* Read port number */
+		tmpstr = curstr;
+		while ('\0' != *tmpstr && '/' != *tmpstr)
 		{
-            tmpstr++;
-        }
-        len = tmpstr - curstr;
-        purl->port = (char*)malloc(sizeof(char) * (len + 1));
-        if ( NULL == purl->port )
+			tmpstr++;
+		}
+		len = tmpstr - curstr;
+		purl->port = (char *)malloc(sizeof(char) * (len + 1));
+		if (NULL == purl->port)
 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        (void)strncpy(purl->port, curstr, len);
-        purl->port[len] = '\0';
-        curstr = tmpstr;
-    }
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		(void)strncpy(purl->port, curstr, len);
+		purl->port[len] = '\0';
+		curstr = tmpstr;
+	}
 	else
 	{
-	    purl->port =  (char*)malloc(4);
-	    memset(purl->port,0,4);
-	    if(strcmp(purl->scheme,"https")==0)
-	    {
-	        (void)strncpy(purl->port, "443", 3);
-	    }
-	    else
-	    {
-	        (void)strncpy(purl->port, "80", 3);
-	    }
+		purl->port = (char *)malloc(4);
+		memset(purl->port, 0, 4);
+		if (strcmp(purl->scheme, "https") == 0)
+		{
+			(void)strncpy(purl->port, "443", 3);
+		}
+		else
+		{
+			(void)strncpy(purl->port, "80", 3);
+		}
 	}
 
 	/* Get ip */
@@ -1178,124 +1192,121 @@ struct parsed_url *parse_url(const char *url)
 	purl->ip = ip;
 
 	/* Set uri */
-	purl->uri = (char*)url;
+	purl->uri = (char *)url;
 
-    /* End of the string */
-    if ( '\0' == *curstr )
+	/* End of the string */
+	if ('\0' == *curstr)
 	{
-        return purl;
-    }
+		return purl;
+	}
 
-    /* Skip '/' */
-    if ( '/' != *curstr )
+	/* Skip '/' */
+	if ('/' != *curstr)
 	{
-        parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-        return NULL;
-    }
-    curstr++;
+		parsed_url_free(purl);
+		fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+		return NULL;
+	}
+	curstr++;
 
-    /* Parse path */
-    tmpstr = curstr;
-    while ( '\0' != *tmpstr && '#' != *tmpstr  && '?' != *tmpstr )
+	/* Parse path */
+	tmpstr = curstr;
+	while ('\0' != *tmpstr && '#' != *tmpstr && '?' != *tmpstr)
 	{
-        tmpstr++;
-    }
-    len = tmpstr - curstr;
-    purl->path = (char*)malloc(sizeof(char) * (len + 1));
-    if ( NULL == purl->path )
+		tmpstr++;
+	}
+	len = tmpstr - curstr;
+	purl->path = (char *)malloc(sizeof(char) * (len + 1));
+	if (NULL == purl->path)
 	{
-        parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-        return NULL;
-    }
-    (void)strncpy(purl->path, curstr, len);
-    purl->path[len] = '\0';
-    curstr = tmpstr;
+		parsed_url_free(purl);
+		fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+		return NULL;
+	}
+	(void)strncpy(purl->path, curstr, len);
+	purl->path[len] = '\0';
+	curstr = tmpstr;
 
-    /* Is query specified? */
-    if ( '?' == *curstr )
+	/* Is query specified? */
+	if ('?' == *curstr)
 	{
-        /* Skip '?' */
-        curstr++;
-        /* Read query */
-        tmpstr = curstr;
-        while ( '\0' != *tmpstr && '#' != *tmpstr )
+		/* Skip '?' */
+		curstr++;
+		/* Read query */
+		tmpstr = curstr;
+		while ('\0' != *tmpstr && '#' != *tmpstr)
 		{
-            tmpstr++;
-        }
-        len = tmpstr - curstr;
-        purl->query = (char*)malloc(sizeof(char) * (len + 1));
-        if ( NULL == purl->query )
+			tmpstr++;
+		}
+		len = tmpstr - curstr;
+		purl->query = (char *)malloc(sizeof(char) * (len + 1));
+		if (NULL == purl->query)
 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        (void)strncpy(purl->query, curstr, len);
-        purl->query[len] = '\0';
-        curstr = tmpstr;
-    }
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		(void)strncpy(purl->query, curstr, len);
+		purl->query[len] = '\0';
+		curstr = tmpstr;
+	}
 
-    /* Is fragment specified? */
-    if ( '#' == *curstr )
+	/* Is fragment specified? */
+	if ('#' == *curstr)
 	{
-        /* Skip '#' */
-        curstr++;
-        /* Read fragment */
-        tmpstr = curstr;
-        while ( '\0' != *tmpstr )
+		/* Skip '#' */
+		curstr++;
+		/* Read fragment */
+		tmpstr = curstr;
+		while ('\0' != *tmpstr)
 		{
-            tmpstr++;
-        }
-        len = tmpstr - curstr;
-        purl->fragment = (char*)malloc(sizeof(char) * (len + 1));
-        if ( NULL == purl->fragment )
- 		{
-            parsed_url_free(purl); fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
-            return NULL;
-        }
-        (void)strncpy(purl->fragment, curstr, len);
-        purl->fragment[len] = '\0';
-        curstr = tmpstr;
-    }
+			tmpstr++;
+		}
+		len = tmpstr - curstr;
+		purl->fragment = (char *)malloc(sizeof(char) * (len + 1));
+		if (NULL == purl->fragment)
+		{
+			parsed_url_free(purl);
+			fprintf(stderr, "Error on line %d (%s)\n", __LINE__, __FILE__);
+			return NULL;
+		}
+		(void)strncpy(purl->fragment, curstr, len);
+		purl->fragment[len] = '\0';
+		curstr = tmpstr;
+	}
 	return purl;
 }
 
-
-
-
-
-
-
 #if WIN32
-size_t  strnlen (const char *str, size_t maxlen)
+size_t strnlen(const char *str, size_t maxlen)
 {
-  const char *char_ptr, *end_ptr = str + maxlen;
-  const unsigned long int *longword_ptr;
-  unsigned long int longword, magic_bits, himagic, lomagic;
+	const char *char_ptr, *end_ptr = str + maxlen;
+	const unsigned long int *longword_ptr;
+	unsigned long int longword, magic_bits, himagic, lomagic;
 
-  if (maxlen == 0)
-    return 0;
+	if (maxlen == 0)
+		return 0;
 
-  if (__builtin_expect (end_ptr < str, 0))
-    end_ptr = (const char *) ~0UL;
+	if (__builtin_expect(end_ptr < str, 0))
+		end_ptr = (const char *)~0UL;
 
-  /* Handle the first few characters by reading one character at a time.
+	/* Handle the first few characters by reading one character at a time.
      Do this until CHAR_PTR is aligned on a longword boundary.  */
-  for (char_ptr = str; ((unsigned long int) char_ptr
-            & (sizeof (longword) - 1)) != 0;
-       ++char_ptr)
-    if (*char_ptr == '/0')
-      {
-    if (char_ptr > end_ptr)
-      char_ptr = end_ptr;
-    return char_ptr - str;
-      }
+	for (char_ptr = str; ((unsigned long int)char_ptr & (sizeof(longword) - 1)) != 0;
+		 ++char_ptr)
+		if (*char_ptr == '/0')
+		{
+			if (char_ptr > end_ptr)
+				char_ptr = end_ptr;
+			return char_ptr - str;
+		}
 
-  /* All these elucidatory comments refer to 4-byte longwords,
+	/* All these elucidatory comments refer to 4-byte longwords,
      but the theory applies equally well to 8-byte longwords.  */
 
-  longword_ptr = (unsigned long int *) char_ptr;
+	longword_ptr = (unsigned long int *)char_ptr;
 
-  /* Bits 31, 24, 16, and 8 of this number are zero.  Call these bits
+	/* Bits 31, 24, 16, and 8 of this number are zero.  Call these bits
      the "holes."  Note that there is a hole just to the left of
      each byte, with an extra at the end:
 
@@ -1304,26 +1315,26 @@ size_t  strnlen (const char *str, size_t maxlen)
 
      The 1-bits make sure that carries propagate to the next 0-bit.
      The 0-bits provide holes for carries to fall into.  */
-  magic_bits = 0x7efefeffL;
-  himagic = 0x80808080L;
-  lomagic = 0x01010101L;
-  if (sizeof (longword) > 4)
-    {
-      /* 64-bit version of the magic.  */
-      /* Do the shift in two steps to avoid a warning if long has 32 bits.  */
-      magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
-      himagic = ((himagic << 16) << 16) | himagic;
-      lomagic = ((lomagic << 16) << 16) | lomagic;
-    }
-  if (sizeof (longword) > 8)
-    abort ();
+	magic_bits = 0x7efefeffL;
+	himagic = 0x80808080L;
+	lomagic = 0x01010101L;
+	if (sizeof(longword) > 4)
+	{
+		/* 64-bit version of the magic.  */
+		/* Do the shift in two steps to avoid a warning if long has 32 bits.  */
+		magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
+		himagic = ((himagic << 16) << 16) | himagic;
+		lomagic = ((lomagic << 16) << 16) | lomagic;
+	}
+	if (sizeof(longword) > 8)
+		abort();
 
-  /* Instead of the traditional loop which tests each character,
+	/* Instead of the traditional loop which tests each character,
      we will test a longword at a time.  The tricky part is testing
      if *any of the four* bytes in the longword in question are zero.  */
-  while (longword_ptr < (unsigned long int *) end_ptr)
-    {
-      /* We tentatively exit the loop if adding MAGIC_BITS to
+	while (longword_ptr < (unsigned long int *)end_ptr)
+	{
+		/* We tentatively exit the loop if adding MAGIC_BITS to
      LONGWORD fails to change any of the hole bits of LONGWORD.
 
      1) Is this safe?  Will it catch all the zero bytes?
@@ -1352,84 +1363,88 @@ size_t  strnlen (const char *str, size_t maxlen)
      So it ignores everything except 128's, when they're aligned
      properly.  */
 
-      longword = *longword_ptr++;
+		longword = *longword_ptr++;
 
-      if ((longword - lomagic) & himagic)
-    {
-      /* Which of the bytes was the zero?  If none of them were, it was
+		if ((longword - lomagic) & himagic)
+		{
+			/* Which of the bytes was the zero?  If none of them were, it was
          a misfire; continue the search.  */
 
-      const char *cp = (const char *) (longword_ptr - 1);
+			const char *cp = (const char *)(longword_ptr - 1);
 
-      char_ptr = cp;
-      if (cp[0] == 0)
-        break;
-      char_ptr = cp + 1;
-      if (cp[1] == 0)
-        break;
-      char_ptr = cp + 2;
-      if (cp[2] == 0)
-        break;
-      char_ptr = cp + 3;
-      if (cp[3] == 0)
-        break;
-      if (sizeof (longword) > 4)
-        {
-          char_ptr = cp + 4;
-          if (cp[4] == 0)
-        break;
-          char_ptr = cp + 5;
-          if (cp[5] == 0)
-        break;
-          char_ptr = cp + 6;
-          if (cp[6] == 0)
-        break;
-          char_ptr = cp + 7;
-          if (cp[7] == 0)
-        break;
-        }
-    }
-      char_ptr = end_ptr;
-    }
+			char_ptr = cp;
+			if (cp[0] == 0)
+				break;
+			char_ptr = cp + 1;
+			if (cp[1] == 0)
+				break;
+			char_ptr = cp + 2;
+			if (cp[2] == 0)
+				break;
+			char_ptr = cp + 3;
+			if (cp[3] == 0)
+				break;
+			if (sizeof(longword) > 4)
+			{
+				char_ptr = cp + 4;
+				if (cp[4] == 0)
+					break;
+				char_ptr = cp + 5;
+				if (cp[5] == 0)
+					break;
+				char_ptr = cp + 6;
+				if (cp[6] == 0)
+					break;
+				char_ptr = cp + 7;
+				if (cp[7] == 0)
+					break;
+			}
+		}
+		char_ptr = end_ptr;
+	}
 
-  if (char_ptr > end_ptr)
-    char_ptr = end_ptr;
-  return char_ptr - str;
+	if (char_ptr > end_ptr)
+		char_ptr = end_ptr;
+	return char_ptr - str;
 }
 #endif
-int strpos(const char *haystack,const char *needle, int ignorecase = 0)
+int strpos(const char *haystack, const char *needle, int ignorecase = 0)
 {
-    register unsigned char c, needc;
-    unsigned char const *from, *end;
-    int len = strlen(haystack);
-    int needlen = strlen(needle);
-    from = (unsigned char *)haystack;
-    end = (unsigned char *)haystack + len;
-    const char *findreset = needle;
-    for (int i = 0; from < end; ++i) {
-        c = *from++;
-        needc = *needle;
-        if (ignorecase) {
-            if (c >= 65 && c < 97)
-                c += 32;
-            if (needc >= 65 && needc < 97)
-                needc += 32;
-        }
-        if(c == needc) {
-            ++needle;
-            if(*needle == '\0') {
-                if (len == needlen)
-                    return 0;
-                else
-                    return i - needlen+1;
-            }
-        }
-        else {
-            if(*needle == '\0' && needlen > 0)
-                return i - needlen +1;
-            needle = findreset;
-        }
-    }
-    return  -1;
+	register unsigned char c, needc;
+	unsigned char const *from, *end;
+	int len = strlen(haystack);
+	int needlen = strlen(needle);
+	from = (unsigned char *)haystack;
+	end = (unsigned char *)haystack + len;
+	const char *findreset = needle;
+	for (int i = 0; from < end; ++i)
+	{
+		c = *from++;
+		needc = *needle;
+		if (ignorecase)
+		{
+			if (c >= 65 && c < 97)
+				c += 32;
+			if (needc >= 65 && needc < 97)
+				needc += 32;
+		}
+		if (c == needc)
+		{
+			++needle;
+			if (*needle == '\0')
+			{
+				if (len == needlen)
+					return 0;
+				else
+					return i - needlen + 1;
+			}
+		}
+		else
+		{
+			if (*needle == '\0' && needlen > 0)
+				return i - needlen + 1;
+			needle = findreset;
+		}
+	}
+	return -1;
 }
-
