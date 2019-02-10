@@ -8,7 +8,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ngrokc
+PKG_NAME:=ngrokc_mbedtls
 PKG_VERSION:=1.14.0
 PKG_RELEASE:=1
 
@@ -16,19 +16,19 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSI
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/ngrokc
+define Package/ngrokc_mbedtls
 	SECTION:=Custom
 	CATEGORY:=Extra packages
-	TITLE:=ngrokc
+	TITLE:=ngrokc_mbedtls
 	DEPENDS:=+libstdcpp +libmbedtls
 	PKGARCH:=all
 endef
 
-define Package/ngrokc/description
+define Package/ngrokc_mbedtls/description
 	Just test
 endef
 
-define Package/ngrokc/Build/Compile
+define Package/ngrokc_mbedtls/Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) ngrokc
 endef
 
@@ -37,7 +37,7 @@ define Build/Prepare
 	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
-define Package/ngrokc/install
+define Package/ngrokc_mbedtls/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ngrokc $(1)/usr/bin/ngrokc
 	$(CP) -R ./usr $(1)
@@ -45,4 +45,4 @@ define Package/ngrokc/install
 endef
 
 
-$(eval $(call BuildPackage,ngrokc))
+$(eval $(call BuildPackage,ngrokc_mbedtls))
