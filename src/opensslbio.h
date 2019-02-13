@@ -29,8 +29,8 @@ inline int SslRecv(SSL* ssl, unsigned char* buffer, int ilen) {
     int r = SslRead(ssl, buffer, ilen);
     switch (SslGetError(ssl, r)) {
 #else
-        int  r=SSL_read(ssl,buffer,ilen);
-        switch(SSL_get_error(ssl,r)){
+    int r = SSL_read(ssl, buffer, ilen);
+    switch (SSL_get_error(ssl, r)) {
 #endif
 
         case SSL_ERROR_NONE:
@@ -52,9 +52,9 @@ inline int ssl_free_info(ssl_info* sslinfo) {
     SslFree(sslinfo->ssl);
     SslCtxFree(sslinfo->ctx);
 #else
-    SSL_shutdown( sslinfo->ssl );
-    SSL_free( sslinfo->ssl );
-    SSL_CTX_free( sslinfo->ctx  );
+    SSL_shutdown(sslinfo->ssl);
+    SSL_free(sslinfo->ssl);
+    SSL_CTX_free(sslinfo->ctx);
 #endif //
     return 0;
 }

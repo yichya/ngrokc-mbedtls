@@ -1,23 +1,29 @@
 #ifndef NONBLOCKING_H_INCLUDED
 #define NONBLOCKING_H_INCLUDED
+
 #include "config.h"
 #include <string.h>
+
 #if  WIN32
 #include <winsock.h>
 #include <winsock2.h>
 #include <windows.h>
 
 #else
+
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #endif
+
 #include <list>
 
 #include "sslbio.h"
+
 using namespace std;
 
 #if WIN32
@@ -52,11 +58,11 @@ inline int SetKeepAlive(int sock){
     return -1;
     }
 
-    // ÉèÖÃKeepAlive²ÎÊý
+    // ï¿½ï¿½ï¿½ï¿½KeepAliveï¿½ï¿½ï¿½ï¿½
     tcp_keepalive alive_in = {0};
     tcp_keepalive alive_out = {0};
-    alive_in.keepalivetime =60000; // ¿ªÊ¼Ê×´ÎKeepAliveÌ½²âÇ°µÄTCP¿Õ±ÕÊ±¼ä
-    alive_in.keepaliveinterval =60000; // Á½´ÎKeepAliveÌ½²â¼äµÄÊ±¼ä¼ä¸ô
+    alive_in.keepalivetime =60000; // ï¿½ï¿½Ê¼ï¿½×´ï¿½KeepAliveÌ½ï¿½ï¿½Ç°ï¿½ï¿½TCPï¿½Õ±ï¿½Ê±ï¿½ï¿½
+    alive_in.keepaliveinterval =60000; // ï¿½ï¿½ï¿½ï¿½KeepAliveÌ½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
     alive_in.onoff = TRUE;
     unsigned long ulBytesReturn =0;
     //nRet = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &alive_in, sizeof(alive_in),&alive_out, sizeof(alive_out), &ulBytesReturn, NULL, NULL);
@@ -67,76 +73,70 @@ inline int SetKeepAlive(int sock){
     return 0;
 }
 #else
+
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-inline int SetKeepAlive(int sock){
-    /*ÓÐÈËËµÊÇÃëµ¥Î»¡£¡£ÓÐÈËËµÊÇºÁÃëµ¥Î»*/
-int keepalive = 1; // ¿ªÆôkeepaliveÊôÐÔ
-int keepidle = 60000; // Èç¸ÃÁ¬½ÓÔÚ60ÃëÄÚÃ»ÓÐÈÎºÎÊý¾ÝÍùÀ´,Ôò½øÐÐÌ½²â
-int keepinterval = 60000; // Ì½²âÊ±·¢°üµÄÊ±¼ä¼ä¸ôÎª5 Ãë
-int keepcount = 1; // Ì½²â³¢ÊÔµÄ´ÎÊý.Èç¹ûµÚ1´ÎÌ½²â°ü¾ÍÊÕµ½ÏìÓ¦ÁË,Ôòºó2´ÎµÄ²»ÔÙ·¢.
-setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive , sizeof(keepalive ));
-setsockopt(sock, SOL_TCP, TCP_KEEPIDLE, (void*)&keepidle , sizeof(keepidle ));
-setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, (void *)&keepinterval , sizeof(keepinterval ));
-setsockopt(sock, SOL_TCP, TCP_KEEPCNT, (void *)&keepcount , sizeof(keepcount ));
-return 0;
-}
-#endif // WIN32
 
-
-
-
-inline int setnonblocking(int sServer,int _nMode)
-{
-    #if WIN32
-    DWORD nMode = _nMode;
-    return ioctlsocket( sServer, FIONBIO,&nMode);
-    #else
-    if(_nMode==1)
-    {
-       return fcntl(sServer,F_SETFL,O_NONBLOCK);
-    }
-    else
-    {
-      return fcntl(sServer,F_SETFL, _nMode);
-    }
-    #endif
-}
-inline int net_dns( struct sockaddr_in *server_addr, const char *host, int port )
-{
-    struct hostent *server_host;
-    if((server_host = gethostbyname(host)) == NULL )
-    {
-        return -1;
-    }
-    memcpy((void*)&server_addr->sin_addr,(void*)server_host->h_addr,server_host->h_length);
-    server_addr->sin_family = AF_INET;
-    server_addr->sin_port   = htons( port );
+inline int SetKeepAlive(int sock) {
+    /*ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½ëµ¥Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½Çºï¿½ï¿½ëµ¥Î»*/
+    int keepalive = 1; // ï¿½ï¿½ï¿½ï¿½keepaliveï¿½ï¿½ï¿½ï¿½
+    int keepidle = 60000; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½60ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½
+    int keepinterval = 60000; // Ì½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Îª5 ï¿½ï¿½
+    int keepcount = 1; // Ì½ï¿½â³¢ï¿½ÔµÄ´ï¿½ï¿½ï¿½.ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½Ó¦ï¿½ï¿½,ï¿½ï¿½ï¿½2ï¿½ÎµÄ²ï¿½ï¿½Ù·ï¿½.
+    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void*) &keepalive, sizeof(keepalive));
+    setsockopt(sock, SOL_TCP, TCP_KEEPIDLE, (void*) &keepidle, sizeof(keepidle));
+    setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, (void*) &keepinterval, sizeof(keepinterval));
+    setsockopt(sock, SOL_TCP, TCP_KEEPCNT, (void*) &keepcount, sizeof(keepcount));
     return 0;
 }
 
-inline int check_sock(int sock)
-{
-    int error=-1;
-    #if WIN32
+#endif // WIN32
+
+
+inline int setnonblocking(int sServer, int _nMode) {
+#if WIN32
+    DWORD nMode = _nMode;
+    return ioctlsocket( sServer, FIONBIO,&nMode);
+#else
+    if (_nMode == 1) {
+        return fcntl(sServer, F_SETFL, O_NONBLOCK);
+    } else {
+        return fcntl(sServer, F_SETFL, _nMode);
+    }
+#endif
+}
+
+inline int net_dns(struct sockaddr_in* server_addr, const char* host, int port) {
+    struct hostent* server_host;
+    if ((server_host = gethostbyname(host)) == NULL) {
+        return -1;
+    }
+    memcpy((void*) &server_addr->sin_addr, (void*) server_host->h_addr, server_host->h_length);
+    server_addr->sin_family = AF_INET;
+    server_addr->sin_port = htons(port);
+    return 0;
+}
+
+inline int check_sock(int sock) {
+    int error = -1;
+#if WIN32
     int len ;
-    #else
+#else
     socklen_t len;
-    #endif
+#endif
     len = sizeof(error);
-    getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+    getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*) &error, &len);
     return error;
 }
 
-void clearsock(Sockinfo * sock_info);
+void clearsock(Sockinfo* sock_info);
 
-inline int SetBufSize(int sock)
-{
-    //½ÓÊÕ»º³åÇø
-    int opt=25*1024;//30K
-    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const char*)&opt,sizeof(opt));
-    //·¢ËÍ»º³åÇø  (Õâ¸öÇ§Íò²»Òª¡£¡£·¢ËÍ²»ÐèÒª»º´æÇø)
-   // setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const char*)&opt,sizeof(opt));
+inline int SetBufSize(int sock) {
+    //ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ï¿½ï¿½
+    int opt = 25 * 1024;//30K
+    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const char*) &opt, sizeof(opt));
+    //ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½  (ï¿½ï¿½ï¿½Ç§ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+    // setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const char*)&opt,sizeof(opt));
     return 0;
 }
 

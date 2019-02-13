@@ -30,10 +30,9 @@ static void swapByteOrder(unsigned long long& ull)
           (ull << 56);
 }*/
 
-inline bool BigEndianTest()
-{
+inline bool BigEndianTest() {
     unsigned int usData = 0x12345678;
-    unsigned char *pucData = (unsigned char *)&usData;
+    unsigned char* pucData = (unsigned char*) &usData;
     return *pucData == 0x78 ? LittleEndian : BigEndian;
 }
 
