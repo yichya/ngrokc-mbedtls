@@ -4,7 +4,7 @@ m = Map("ngrokc", translate("Ngrok"), translate("Secure tunnels to localhost."))
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
-	os.execute("/etc/init.d/ngrokc restart") -- reload configuration
+	luci.sys.exec("/etc/init.d/ngrokc restart") -- reload configuration
 end
 
 local DISP = require "luci.dispatcher"

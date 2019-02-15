@@ -14,7 +14,7 @@ local DTYP = require "luci.cbi.datatypes"
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
-        os.execute("/etc/init.d/ngrokc restart") -- reload configuration
+    luci.sys.exec("/etc/init.d/ngrokc restart") -- reload configuration
 end
 
 -- takeover arguments -- #######################################################
@@ -34,11 +34,11 @@ server = tunnels:option(ListValue, "server", translate("Server"))
 --server:value("tunnel_mobi", "tunnel.mobi:44433")
 --server:value("tunnel_org_cn", "tunnel.org.cn:4443")
 UCI:foreach(
-        "ngrokc",
-        "servers",
-        function(s)
-                server:value(s[".name"], s[".name"] .. " ( " .. s.host .. ":" .. s.port .. " ) ")
-        end
+    "ngrokc",
+    "servers",
+    function(s)
+        server:value(s[".name"], s[".name"] .. " ( " .. s.host .. ":" .. s.port .. " ) ")
+    end
 )
 
 ptype = tunnels:option(ListValue, "type", translate("Type"))
