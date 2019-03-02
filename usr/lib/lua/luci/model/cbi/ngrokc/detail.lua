@@ -12,11 +12,6 @@ local UTIL = require "luci.util"
 local DISP = require "luci.dispatcher"
 local DTYP = require "luci.cbi.datatypes"
 
-local apply = luci.http.formvalue("cbi.apply")
-if apply then
-    luci.sys.exec("/etc/init.d/ngrokc restart") -- reload configuration
-end
-
 -- takeover arguments -- #######################################################
 local section = arg[1]
 
