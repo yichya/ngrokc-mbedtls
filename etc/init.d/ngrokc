@@ -54,3 +54,8 @@ start_service() {
 	config_foreach list_tunnels 'tunnel'
 	config_foreach run_ngrokc 'servers'			
 }
+
+service_triggers()
+{
+    procd_add_reload_trigger "/etc/config/ngrokc"
+}
