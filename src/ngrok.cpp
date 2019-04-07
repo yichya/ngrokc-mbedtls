@@ -282,7 +282,7 @@ int RemoteToLocal(ssl_info *sslinfo1, Sockinfo *tempinfo1, map<int, Sockinfo *>:
                 memcpy(srchost, tunnelreq->hostheader, strlen(tunnelreq->hostheader));
                 memcpy(srchost + strlen(srchost), httpline, 2);
                 //�鵽�ˡ���
-                if (p != nullptr)
+                if (p != NULL)
                 {
                     //�滻http����ͷ
                     str_replace(p, strlen(remotehost), srchost);
