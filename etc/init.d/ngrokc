@@ -41,12 +41,12 @@ list_tunnels() {
 
 run_ngrokc() {
 	procd_open_instance
-    procd_set_param respawn
-    procd_set_param command /usr/bin/ngrokc
+   	procd_set_param respawn
+   	procd_set_param command /usr/bin/ngrokc
 	eval "procd_append_param command \$${1}_PARAMS"
 	eval "procd_append_param command \$${1}_TUNNEL_PARAMS"
-    procd_set_param file /etc/config/v2ray
-    procd_close_instance
+	procd_set_param file /etc/config/ngrokc
+   	procd_close_instance
 }
 
 start_service() {
@@ -57,5 +57,5 @@ start_service() {
 
 service_triggers()
 {
-    procd_add_reload_trigger "/etc/config/ngrokc"
+   	procd_add_reload_trigger "/etc/config/ngrokc"
 }
