@@ -7,6 +7,7 @@
 #
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/uclibc++.mk
 
 PKG_NAME:=ngrokc_openssl
 PKG_VERSION:=1.14.0
@@ -20,7 +21,7 @@ define Package/ngrokc_openssl
 	SECTION:=Custom
 	CATEGORY:=Extra packages
 	TITLE:=ngrokc_openssl
-	DEPENDS:=+libstdcpp +libopenssl
+	DEPENDS:=$(CXX_DEPENDS) +libopenssl
 	PKGARCH:=all
 endef
 
