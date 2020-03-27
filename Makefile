@@ -7,6 +7,7 @@
 #
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/uclibc++.mk
 
 PKG_NAME:=ngrokc_mbedtls
 PKG_VERSION:=1.14.0
@@ -20,7 +21,7 @@ define Package/ngrokc_mbedtls
 	SECTION:=Custom
 	CATEGORY:=Extra packages
 	TITLE:=ngrokc_mbedtls
-	DEPENDS:=+libstdcpp +libmbedtls
+	DEPENDS:=$(CXX_DEPENDS) +libmbedtls
 	PKGARCH:=all
 endef
 
